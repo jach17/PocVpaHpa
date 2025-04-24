@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: ping-container
-          image: ping-service:latest
-          imagePullPolicy: IfNotPresent
+          image: ping-service:1.0.0
+          imagePullPolicy: Never
           ports:
             - containerPort: 8000
           resources:

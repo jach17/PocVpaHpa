@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar el código fuente
 COPY main.py .
+COPY ./utils ./utils
 
 # Exponer el puerto
 EXPOSE 8000
