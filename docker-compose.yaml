@@ -7,12 +7,17 @@ services:
         command: -config.file=/etc/agent/agent.yaml
         depends_on:
             - loki
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
 
     loki:
         image: grafana/loki:3.0.0
         command: -config.file=/etc/loki/local-config.yaml
         ports:
             - '3100:3100'
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
+            
 
     prometheus:
         image: prom/prometheus:v2.51.2
@@ -25,6 +30,8 @@ services:
             - --enable-feature=exemplar-storage
         depends_on:
             - loki
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
 
     tempo:
         image: grafana/tempo:2.4.1
@@ -40,6 +47,8 @@ services:
             - '4318:4318'
         depends_on:
             - loki
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
 
     grafana:
         image: grafana/grafana:10.4.2
@@ -52,10 +61,12 @@ services:
         depends_on:
             - loki
             - prometheus
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
 
     # Consumers
     # app-a:
-    #     build: ./fastapi_app/
+    #     build: ./app/
     #     ports:
     #         - '8000:8000'
     #     depends_on:
@@ -96,3 +107,7 @@ services:
 
 volumes:
     shared-logs:
+# --- Define la sección networks aquí ---
+networks:
+  mi_red_observabilidad: # Este es el nombre de tu red personalizada
+    driver: bridge # Opcional, bridge es el driver por defecto
