@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  api:
+    #image: repo/User-api
+    container_name: app-a
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      sh -c 'uvicorn main:app --host 0.0.0.0 --port 8000 2>&1 | tee /var/log/containers/app-a.log'
+    restart: unless-stopped
+    # env_file:
+    #   - .env
+    volumes:
+      - shared-logs:/var/log/containers
+    ports:
+      - "3002:8000"
+volumes:
+    shared-logs:

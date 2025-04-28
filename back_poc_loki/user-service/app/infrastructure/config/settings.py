@@ -12,8 +12,12 @@ class ApiSettings(BaseSettings):
     DB_CONNECT_TIMEOUT: int = 5  # Tiempo máximo para establecer conexión
     DB_COMMAND_TIMEOUT: int = 10  # segundos
     DB_POOL_SIZE: int = 20
-    Empty_BASE_URL: str = 'https://rickandmortyapi.com/'
+    Empty_BASE_URL: str = ''
+    APP_NAME: str = ""
+    EXPOSE_PORT: int = 8000
+    OTLP_GRPC_ENDPOINT: str = ""
 
+    
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore"
