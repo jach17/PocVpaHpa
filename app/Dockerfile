@@ -1,19 +1,11 @@
-# Imagen base ligera con Python
-FROM python:3.11-slim
+FROM python:3.10-slim
 
-# Crear directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias necesarias
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
 
-# Copiar el código fuente
-COPY main.py .
-COPY ./utils ./utils
+RUN pip install -r requirements.txt
 
-# Exponer el puerto
 EXPOSE 8000
 
-# Comando por defecto
-CMD ["python", "main.py"]
+CMD python main.py
