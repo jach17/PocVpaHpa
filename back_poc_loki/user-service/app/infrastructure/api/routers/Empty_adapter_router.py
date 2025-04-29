@@ -1,3 +1,4 @@
+import json
 import logging
 import random
 import time
@@ -17,6 +18,12 @@ router = APIRouter(
 )
 
 
+@router.get("/random_sleep")
+async def random_sleep(response: Response):
+    time.sleep(random.randint(0, 5))
+    logging.error("random sleep")
+    return {"path": "/random_sleep"}
+
 @router.get(
     path="",
     response_model=EmptyResponseService
@@ -25,11 +32,13 @@ async def get_Empty_by_id(
         Empty_id: str
 ):
     try:
+        logging.error(f"User router - Begin user-service {Empty_id}")
         use_case = builder_Empty_adapter_use_case()
         response = await use_case.get_Empty_by_id_case(
             Empty_id=Empty_id
         )
     
+        logging.error(f"User router - End user-service - {response}")
         return response # O procesar la respuesta como necesites
 
     except BusinessError as error:

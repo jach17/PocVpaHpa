@@ -16,7 +16,7 @@ from utils.configure_shared_logger import PrometheusMiddleware, metrics, setting
 
 # Definicion de variables de entorno
 APP_NAME = os.environ.get("APP_NAME", "app")
-EXPOSE_PORT = os.environ.get("EXPOSE_PORT", 3002)
+EXPOSE_PORT = os.environ.get("EXPOSE_PORT", 8000)
 OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "http://host.docker.internal:4317")
 
 TARGET_ONE_HOST = os.environ.get("TARGET_ONE_HOST", "app-b")

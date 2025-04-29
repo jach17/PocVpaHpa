@@ -13,8 +13,8 @@ class ApiSettings(BaseSettings):
     DB_COMMAND_TIMEOUT: int = 10  # segundos
     DB_POOL_SIZE: int = 20
     Empty_BASE_URL: str = ''
-    APP_NAME: str = ""
-    EXPOSE_PORT: int = 8000
+    APP_NAME: str = "user-service"
+    EXPOSE_PORT: int = 3002
     OTLP_GRPC_ENDPOINT: str = ""
 
     

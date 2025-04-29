@@ -1,8 +1,10 @@
 from dataclasses import dataclass
+import logging
 from typing import Any, Dict, Optional
 
 import requests
 import structlog
+from opentelemetry.propagate import inject
 
 @dataclass
 class HttpClient(object):
@@ -22,6 +24,8 @@ class HttpClient(object):
             'Content-Type': 'application/json'
         }
         
+        inject(headers)
+        logging.critical(headers)
         url = '{api_host}{endpoint}'.format(
             api_host=self.api_host,
             endpoint=endpoint,

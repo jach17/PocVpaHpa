@@ -13,20 +13,20 @@ services:
     # env_file:
     #   - .env
     volumes:
-      - vpa_shared-logs:/var/log/containers
+      - pocvpahpa_shared-logs:/var/log/containers
     ports:
       - "8000:8000"
     networks:
-      - vpa_mi_red_observabilidad # Asigna este servicio a la red
+      - pocvpahpa_mi_red_observabilidad # Asigna este servicio a la red
 
 # --- Referencia el volumen compartido como EXTERNO ---
 # Indica a Docker Compose que este volumen ya existe (creado por otro archivo o manualmente)
 volumes:
-    vpa_shared-logs:
+    pocvpahpa_shared-logs:
         external: true
 
 # --- Referencia la red compartida como EXTERNA ---
 # Indica a Docker Compose que esta red ya existe (creada por otro archivo o manualmente)
 networks:
-  vpa_mi_red_observabilidad:
+  pocvpahpa_mi_red_observabilidad:
     external: true

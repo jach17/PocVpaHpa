@@ -12,7 +12,10 @@ class ApiSettings(BaseSettings):
     DB_CONNECT_TIMEOUT: int = 5  # Tiempo máximo para establecer conexión
     DB_COMMAND_TIMEOUT: int = 10  # segundos
     DB_POOL_SIZE: int = 20
-    Users_BASE_URL: str = 'http://user-service/'
+    Users_BASE_URL: str = ''
+    APP_NAME: str = "transaction-service"
+    EXPOSE_PORT: int = 3001
+    OTLP_GRPC_ENDPOINT: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

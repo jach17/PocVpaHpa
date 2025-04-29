@@ -919,7 +919,7 @@
                         "type": "loki",
                         "uid": "loki"
                     },
-                    "expr": "sum by(type) (rate({compose_service=~\"app-.*\"} | pattern `<date> <time> <type> <logger> <code> [<_>=<trace_id> <_>=<span_id> <_>=<service_name>] - <msg>` | type != \"\" |= \"$log_keyword\" [1m]))",
+                    "expr": "sum by(type) (rate({compose_service=~\".*-service\"} | pattern `<date> <time> <type> <logger> <code> [<_>=<trace_id> <_>=<span_id> <_>=<service_name>] - <msg>` | type != \"\" |= \"$log_keyword\" [1m]))",
                     "legendFormat": "{{type}}",
                     "refId": "A"
                 }
@@ -956,7 +956,7 @@
                         "type": "loki",
                         "uid": "loki"
                     },
-                    "expr": "{compose_service=~\"app-.*\"} |= \"trace_id=\"",
+                    "expr": "{compose_service=~\".*-service\"} |= \"trace_id=\"",
                     "hide": false,
                     "refId": "A"
                 }
@@ -974,8 +974,8 @@
             {
                 "current": {
                     "selected": false,
-                    "text": "app-a",
-                    "value": "app-a"
+                    "text": "user-service",
+                    "value": "user-service"
                 },
                 "datasource": {
                     "type": "prometheus",

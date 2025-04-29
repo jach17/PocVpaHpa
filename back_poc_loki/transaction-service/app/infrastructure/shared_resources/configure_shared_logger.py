@@ -1,46 +1,130 @@
-# shared_logger.py
+import time
+from typing import Tuple
 
-import logging
-import sys
-import structlog
-import structlog.contextvars # Necesitas importar esto para que structlog sepa usar contextvars
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import \
+    OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from prometheus_client import REGISTRY, Counter, Gauge, Histogram
+from prometheus_client.openmetrics.exposition import (CONTENT_TYPE_LATEST,
+                                                      generate_latest)
+from starlette.middleware.base import (BaseHTTPMiddleware,
+                                       RequestResponseEndpoint)
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.routing import Match
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from starlette.types import ASGIApp
 
-def configure_shared_logger():
-    """
-    Configura el logger compartido usando structlog.
-    Debe llamarse una vez al inicio de CADA microservicio.
-    """
-    # Configura el logger base del standard library. structlog usa esto por debajo.
-    logging.basicConfig(
-        format="%(message)s", # structlog renderizará a JSON en este formato
-        stream=sys.stdout,    # Enviar logs a la salida estándar
-        level=logging.INFO    # Nivel mínimo de logs a procesar
-    )
 
-    # Configura structlog con los procesadores deseados
-    structlog.configure(
-        processors=[
-            # Este procesador fusiona los contextvars (como trace_id) en el diccionario del evento de log
-            structlog.contextvars.merge_contextvars,
-            structlog.processors.add_log_level,       # Añade el nivel del log (info, error, etc.)
-            structlog.processors.TimeStamper(fmt="iso"), # Añade la marca de tiempo ISO
-            # Puedes añadir procesadores para filtrar campos, renombrar, etc., aquí
-            structlog.processors.StackInfoRenderer(), # Opcional: añade stack info en errores
-            structlog.processors.format_exc_info,     # Opcional: añade info de excepción
-            # Este es el procesador final que convierte el diccionario a JSON
-            structlog.processors.JSONRenderer()
-        ],
-        logger_factory=structlog.stdlib.LoggerFactory(), # Usa loggers del standard library
-        wrapper_class=structlog.make_filtering_bound_logger(logging.INFO), # Envuelve para añadir filtrado por nivel
-        cache_logger_on_first_use=True, # Cachea el logger para rendimiento
-    )
+# --- Prometheus Metrics ---
+INFO = Gauge(
+    "fastapi_app_info", "FastAPI application information.", [
+        "app_name"]
+)
+REQUESTS = Counter(
+    "fastapi_requests_total", "Total count of requests by method and path.", [
+        "method", "path", "app_name"]
+)
+RESPONSES = Counter(
+    "fastapi_responses_total",
+    "Total count of responses by method, path and status codes.",
+    ["method", "path", "status_code", "app_name"],
+)
+REQUESTS_PROCESSING_TIME = Histogram(
+    "fastapi_requests_duration_seconds",
+    "Histogram of requests processing time by path (in seconds)",
+    ["method", "path", "app_name"],
+)
+EXCEPTIONS = Counter(
+    "fastapi_exceptions_total",
+    "Total count of exceptions raised by path and exception type",
+    ["method", "path", "exception_type", "app_name"],
+)
+REQUESTS_IN_PROGRESS = Gauge(
+    "fastapi_requests_in_progress",
+    "Gauge of requests by method and path currently being processed",
+    ["method", "path", "app_name"],
+)
 
-def get_shared_logger():
-    """
-    Obtiene una instancia del logger configurado por structlog.
-    """
-    # Retorna la instancia base del logger.
-    # Los binds específicos (servicio, componente) se harán después de importarlo.
-    return structlog.get_logger()
 
-# La lógica de bind_contextvars() NO va aquí, ya que es específica de cada petición.
+class PrometheusMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app: ASGIApp, app_name: str = "fastapi-app") -> None:
+        super().__init__(app)
+        self.app_name = app_name
+        INFO.labels(app_name=self.app_name).inc()
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        method = request.method
+        path, is_handled_path = self.get_path(request)
+
+        if not is_handled_path:
+            return await call_next(request)
+
+        REQUESTS_IN_PROGRESS.labels(
+            method=method, path=path, app_name=self.app_name).inc()
+        REQUESTS.labels(method=method, path=path, app_name=self.app_name).inc()
+        before_time = time.perf_counter()
+        try:
+            response = await call_next(request)
+        except BaseException as e:
+            status_code = HTTP_500_INTERNAL_SERVER_ERROR
+            EXCEPTIONS.labels(method=method, path=path, exception_type=type(
+                e).__name__, app_name=self.app_name).inc()
+            raise e from None
+        else:
+            status_code = response.status_code
+            after_time = time.perf_counter()
+            # retrieve trace id for exemplar
+            span = trace.get_current_span()
+            trace_id = trace.format_trace_id(
+                span.get_span_context().trace_id)
+
+            REQUESTS_PROCESSING_TIME.labels(method=method, path=path, app_name=self.app_name).observe(
+                after_time - before_time, exemplar={'TraceID': trace_id}
+            )
+        finally:
+            RESPONSES.labels(method=method, path=path,
+                             status_code=status_code, app_name=self.app_name).inc()
+            REQUESTS_IN_PROGRESS.labels(
+                method=method, path=path, app_name=self.app_name).dec()
+
+        return response
+
+    @staticmethod
+    def get_path(request: Request) -> Tuple[str, bool]:
+        for route in request.app.routes:
+            match, child_scope = route.matches(request.scope)
+            if match == Match.FULL:
+                return route.path, True
+
+        return request.url.path, False
+
+
+def metrics(request: Request) -> Response:
+    return Response(generate_latest(REGISTRY), headers={"Content-Type": CONTENT_TYPE_LATEST})
+
+
+def setting_otlp(app: ASGIApp, app_name: str, endpoint: str, log_correlation: bool = True) -> None:
+    # Setting OpenTelemetry
+    # set the service name to show in traces
+    resource = Resource.create(attributes={
+        "service.name": app_name,
+        "compose_service": app_name
+    })
+
+    # set the tracer provider
+    tracer = TracerProvider(resource=resource)
+    trace.set_tracer_provider(tracer)
+
+    tracer.add_span_processor(BatchSpanProcessor(
+        OTLPSpanExporter(endpoint=endpoint)))
+
+    if log_correlation:
+        LoggingInstrumentor().instrument(set_logging_format=True)
+
+    FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)

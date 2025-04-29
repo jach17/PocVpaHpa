@@ -64,13 +64,6 @@ def set_logging_config():
 set_logging_config()
 
 
-@app.get("/random_sleep")
-async def random_sleep(response: Response):
-    time.sleep(random.randint(0, 5))
-    logging.error("random sleep")
-    return {"path": "/random_sleep"}
-
-
 # app.include_router(health_router)
 # app.include_router(User_repository_router)
 app.include_router(User_adapter_router)

@@ -1,5 +1,5 @@
 [project]
-name = "archetype"
+name = "transaction-service"
 version = "0.1.0"
 description = "Archetype FAST API - Microservice based on Transaction template"
 authors = [
@@ -47,7 +47,20 @@ dependencies = [
     "uvicorn (==0.34.0)",
     "pytest-cov (>=6.0.0,<7.0.0)",
     "expects (>=0.9.0,<0.10.0)",
-    "structlog (>=25.2.0,<26.0.0)"
+    "structlog (>=25.2.0,<26.0.0)",
+
+    # Dependencias OpenTelemetry consistentes (versiones más nuevas)
+    "opentelemetry-api>=1.32.1,<2.0.0",
+    "opentelemetry-sdk>=1.32.1,<2.0.0",
+    "opentelemetry-exporter-otlp>=1.32.1,<2.0.0",
+    "opentelemetry-instrumentation-fastapi>=0.53b1,<0.54",
+    "opentelemetry-instrumentation-logging>=0.53b1,<0.54",
+    "opentelemetry-instrumentation-asgi>=0.53b1,<0.54",
+
+    # Nueva dependencia añadida que no estaba presente y no entra en conflicto:
+    "prometheus-client==0.20.0",
+
+    # opentelemetry-distro==0.45b0 ha sido ELIMINADO para resolver el conflicto
 ]
 
 
