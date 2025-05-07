@@ -3,19 +3,19 @@ version: "3.9"
 services:
   api:
     #image: repo/User-api
-    container_name: app-a
+    container_name: user-service
     build:
       context: .
       dockerfile: Dockerfile
     command: >
-      sh -c 'uvicorn main:app --host 0.0.0.0 --port 8000 2>&1 | tee /var/log/containers/app-a.log'
+      sh -c 'uvicorn main:app --host 0.0.0.0 --port 3002 2>&1 | tee /var/log/containers/user-service.log'
     restart: unless-stopped
     # env_file:
     #   - .env
     volumes:
       - pocvpahpa_shared-logs:/var/log/containers
     ports:
-      - "8000:8000"
+      - "3002:3002"
     networks:
       - pocvpahpa_mi_red_observabilidad # Asigna este servicio a la red
 

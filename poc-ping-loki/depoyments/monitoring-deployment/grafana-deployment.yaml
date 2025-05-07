@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: observabilidad
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      volumes:
+        - name: grafana-datasources-volume
+          configMap:
+            name: grafana-datasources
+        - name: grafana-dashboards-config-volume
+          configMap:
+            name: grafana-dashboards-config
+        - name: grafana-dashboards-volume # Usa el PVC para el directorio
+          persistentVolumeClaim:
+            claimName: grafana-dashboards-pvc
+      containers:
+        - name: grafana
+          image: grafana/grafana:10.4.2
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: grafana-datasources-volume
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-dashboards-config-volume
+              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+              subPath: dashboards.yaml
+            - name: grafana-dashboards-volume
+              mountPath: /etc/grafana/dashboards
+          dependsOn:
+            - loki
+            - prometheus

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: observabilidad
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      volumes:
+        - name: prometheus-config-volume
+          configMap:
+            name: prometheus-config
+        - name: prometheus-data-volume
+          persistentVolumeClaim:
+            claimName: prometheus-data-pvc
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.51.2
+          command: ["--config.file=/workspace/prometheus.yml", "--enable-feature=exemplar-storage"]
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /workspace/prometheus.yml
+              subPath: prometheus.yml
+            - name: prometheus-data-volume
+              mountPath: /workspace
+          dependsOn:
+            - loki

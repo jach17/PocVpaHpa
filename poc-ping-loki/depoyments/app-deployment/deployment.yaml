@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ping-service
+  name: user-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ping
+      app: user
   template:
     metadata:
       labels:
-        app: ping
+        app: user
     spec:
       containers:
-        - name: ping-container
-          image: ping-service:1.0.0
+        - name: user-container
+          image: user-service:1.0.0
           imagePullPolicy: Never
           ports:
-            - containerPort: 8000
+            - containerPort: 3002
           resources:
             requests:
               cpu: "18m"

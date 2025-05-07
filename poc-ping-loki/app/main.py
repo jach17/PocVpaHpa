@@ -16,8 +16,8 @@ from utils.configure_shared_logger import PrometheusMiddleware, metrics, setting
 
 # Definicion de variables de entorno
 APP_NAME = os.environ.get("APP_NAME", "app")
-EXPOSE_PORT = os.environ.get("EXPOSE_PORT", 8000)
-OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "http://host.docker.internal:4317")
+EXPOSE_PORT = os.environ.get("EXPOSE_PORT", 3002)
+OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "http://tempo:4317")
 
 TARGET_ONE_HOST = os.environ.get("TARGET_ONE_HOST", "app-b")
 TARGET_TWO_HOST = os.environ.get("TARGET_TWO_HOST", "app-c")
@@ -106,17 +106,17 @@ async def chain(response: Response):
 
     async with httpx.AsyncClient() as client:
         await client.get(
-            "http://localhost:8000/",
+            "http://localhost:3002/",
             headers=headers,
         )
     async with httpx.AsyncClient() as client:
         await client.get(
-            f"http://{TARGET_ONE_HOST}:8000/io_task",
+            f"http://{TARGET_ONE_HOST}:3002/io_task",
             headers=headers,
         )
     async with httpx.AsyncClient() as client:
         await client.get(
-            f"http://{TARGET_TWO_HOST}:8000/cpu_task",
+            f"http://{TARGET_TWO_HOST}:3002/cpu_task",
             headers=headers,
         )
     logging.info("Chain Finished")

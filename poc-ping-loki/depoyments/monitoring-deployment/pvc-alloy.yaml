@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alloy-shared-logs-pvc
+  namespace: observabilidad
+spec:
+  accessModes:
+    - ReadWriteOnce # O ReadWriteMany si varios replicas necesitan escribir
+  resources:
+    requests:
+      storage: 10Gi # Ajusta el tamaño según tus necesidades

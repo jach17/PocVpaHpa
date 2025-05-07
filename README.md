@@ -53,3 +53,8 @@ De esta se obtiene una respuesta como la que se muestra a continuación:
 ```
 
 Ahora puedes visualizar nuevas metricas en el tablero precargado de grafana
+
+
+
+
+5. Explicación del tablero:

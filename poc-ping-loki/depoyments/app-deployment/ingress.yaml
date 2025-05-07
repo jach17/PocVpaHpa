@@ -1,17 +1,17 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ping-ingress
+  name: user-ingress
 spec:
   ingressClassName: nginx
   rules:
     - host: localhost
       http:
         paths:
-          - path: /ping
+          - path: /random_sleep
             pathType: Prefix
             backend:
               service:
-                name: ping-service
+                name: user-service
                 port:
                   number: 80
