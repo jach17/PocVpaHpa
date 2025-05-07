@@ -1,0 +1,3 @@
+cd_id,nb_name,nb_usercreated,ts_created,nb_usermodified,ts_modified,st_active
+1,Administrador,system,2022-06-21 23:29:03.387,system,2022-06-21 23:29:03.387,1
+2,Usuario General,system,2022-06-21 23:29:03.387,system,2022-06-21 23:29:03.387,1
