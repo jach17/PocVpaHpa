@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tempo-pv
+  namespace: observabilidad
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 2Gi # Ajusta el tamaño según tus necesidades
+  hostPath: # Para desarrollo/pruebas locales. En un entorno de producción, usa un provisionador de almacenamiento
+    path: /data/tempo
