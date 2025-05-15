@@ -19,7 +19,7 @@ spec:
       containers:
       - name: api
         # IMPORTANT: Replace with the actual image name from your Docker build and registry
-        image: user-api:latest
+        image: user-api:1.0.1
         ports:
         - containerPort: 3002
         # env: # Uncomment and add env vars if using a .env file in Compose

@@ -16,8 +16,8 @@ spec:
       protocol: TCP
       port: 9095
       targetPort: 9095
-  type: ClusterIP
-
+  type: LoadBalancer
+---
 # Service for Prometheus
 apiVersion: v1
 kind: Service
@@ -31,7 +31,7 @@ spec:
     - protocol: TCP
       port: 9090
       targetPort: 9090
-  type: ClusterIP
+  type: LoadBalancer
 ---
 apiVersion: v1
 kind: Service
@@ -59,7 +59,7 @@ spec:
     #   protocol: TCP
     #   port: 3200
     #   targetPort: 3200
-  type: ClusterIP
+  type: LoadBalancer
 ---
 # Service for Grafana
 apiVersion: v1
@@ -72,7 +72,7 @@ spec:
     app: grafana
   ports:
     - protocol: TCP
-      port: 80 # Port exposed by the Service
+      port: 3000 # Port exposed by the Service
       targetPort: 3000 # Port Grafana listens on
-  type: ClusterIP # Change to LoadBalancer or NodePort to access Grafana from outside the cluster
+  type: LoadBalancer # Change to LoadBalancer or NodePort to access Grafana from outside the cluster
   # nodePort: 30000 # Uncomment and set if using NodePort (range 30000-32767)

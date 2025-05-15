@@ -9,7 +9,7 @@ spec:
     - ReadWriteMany # Needed for multiple pods to write/read simultaneously
   resources:
     requests:
-      storage: 5Gi # Adjust size as needed
+      storage: 2Gi # Adjust size as needed
   # storageClassName: your-storage-class # Uncomment and specify if you have a specific StorageClass for RWX
 ---
 # PersistentVolumeClaim for Loki data
@@ -23,7 +23,7 @@ spec:
     - ReadWriteOnce # Typical for single pod access
   resources:
     requests:
-      storage: 10Gi # Adjust size as needed for logs
+      storage: 2Gi # Adjust size as needed for logs
   # storageClassName: standard # Uncomment and specify your preferred StorageClass
 ---
 # PersistentVolumeClaim for Prometheus data
@@ -37,7 +37,7 @@ spec:
     - ReadWriteOnce # Typical for single pod access
   resources:
     requests:
-      storage: 10Gi # Adjust size as needed for metrics
+      storage: 2Gi # Adjust size as needed for metrics
   # storageClassName: standard # Uncomment and specify your preferred StorageClass
 
 ---
@@ -52,7 +52,7 @@ spec:
     - ReadWriteOnce # Typical for single pod access
   resources:
     requests:
-      storage: 10Gi # Adjust size as needed for traces
+      storage: 2Gi # Adjust size as needed for traces
   # storageClassName: standard # Uncomment and specify your preferred StorageClass
 
 ---
@@ -67,7 +67,7 @@ spec:
     - ReadWriteOnce # Typical for single pod access
   resources:
     requests:
-      storage: 5Gi # Adjust size as needed for Grafana DB, plugins, etc.
+      storage: 2Gi # Adjust size as needed for Grafana DB, plugins, etc.
   # storageClassName: standard # Uncomment and specify your preferred StorageClass
 
 ---

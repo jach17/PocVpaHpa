@@ -64,15 +64,9 @@ spec:
         args:
         - -config.file=/etc/loki/local-config.yaml
         volumeMounts:
-        - name: loki-config-volume
-          mountPath: /etc/loki/local-config.yaml
-          subPath: local-config.yaml # Mount specific file from ConfigMap
         - name: loki-data-volume
           mountPath: /loki # Mount path specified in the dummy configmap
       volumes:
-      - name: loki-config-volume
-        configMap:
-          name: loki-config # Refers to the loki-config ConfigMap
       - name: loki-data-volume
         persistentVolumeClaim:
           claimName: loki-data-pvc
