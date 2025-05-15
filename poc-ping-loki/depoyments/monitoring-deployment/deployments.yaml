@@ -1,8 +1,11 @@
+# Deployment for Grafana Alloy (Agent)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana-alloy
   namespace: observabilidad
+  labels:
+    app: grafana-alloy
 spec:
   replicas: 1
   selector:
@@ -14,30 +17,32 @@ spec:
         app: grafana-alloy
     spec:
       containers:
-        - name: grafana-alloy
-          image: grafana/agent:latest
-          args:
-            - -config.file=/etc/agent/alloy-config.yaml
-          volumeMounts:
-            - name: alloy-config
-              mountPath: /etc/agent
-            - name: varlog
-              mountPath: /var/log/containers
-              readOnly: true
+      - name: agent
+        image: grafana/agent:latest
+        args:
+        - -config.file=/etc/agent/agent.yaml
+        volumeMounts:
+        - name: alloy-config-volume
+          mountPath: /etc/agent/agent.yaml
+          subPath: alloy-config.yaml # Mount specific file from ConfigMap
+        - name: shared-logs-volume
+          mountPath: /var/log/containers # Mount the shared log volume
       volumes:
-        - name: alloy-config
-          configMap:
-            name: alloy-config
-        - name: varlog
-          hostPath:
-            path: /var/log/containers
-            type: DirectoryOrCreate
+      - name: alloy-config-volume
+        configMap:
+          name: alloy-config
+      - name: shared-logs-volume
+        persistentVolumeClaim:
+          claimName: shared-logs-pvc
 ---
+# Deployment for Loki
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: loki
   namespace: observabilidad
+  labels:
+    app: loki
 spec:
   replicas: 1
   selector:
@@ -49,28 +54,37 @@ spec:
         app: loki
     spec:
       containers:
-        - name: loki
-          image: grafana/loki:3.0.0
-          args:
-            - -config.file=/etc/loki/local-config.yaml
-          ports:
-            - containerPort: 3100
-          volumeMounts:
-            - name: loki-storage
-              mountPath: /var/loki
+      - name: loki
+        image: grafana/loki:3.0.0
+        ports:
+        - containerPort: 3100
+          name: http-metrics
+        - containerPort: 9095
+          name: grpc
+        args:
+        - -config.file=/etc/loki/local-config.yaml
+        volumeMounts:
+        - name: loki-config-volume
+          mountPath: /etc/loki/local-config.yaml
+          subPath: local-config.yaml # Mount specific file from ConfigMap
+        - name: loki-data-volume
+          mountPath: /loki # Mount path specified in the dummy configmap
       volumes:
-        - name: loki-config
-          configMap:
-            name: loki-config
-        - name: loki-storage
-          persistentVolumeClaim:
-            claimName: loki-pvc
+      - name: loki-config-volume
+        configMap:
+          name: loki-config # Refers to the loki-config ConfigMap
+      - name: loki-data-volume
+        persistentVolumeClaim:
+          claimName: loki-data-pvc
 ---
+# Deployment for Prometheus
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus
   namespace: observabilidad
+  labels:
+    app: prometheus
 spec:
   replicas: 1
   selector:
@@ -82,26 +96,38 @@ spec:
         app: prometheus
     spec:
       containers:
-        - name: prometheus
-          image: prom/prometheus:v2.51.2
-          args:
-            - --config.file=/etc/prometheus/prometheus.yml
-            - --enable-feature=exemplar-storage
-          ports:
-            - containerPort: 9090
-          volumeMounts:
-            - name: prometheus-config
-              mountPath: /etc/prometheus
+      - name: prometheus
+        image: prom/prometheus:v2.51.2
+        ports:
+        - containerPort: 9090
+        args:
+        - --config.file=/etc/prometheus/prometheus.yml # Standard Prometheus config path
+        - --storage.tsdb.path=/prometheus # Standard Prometheus data path
+        - --web.console.libraries=/usr/share/prometheus/console_libraries
+        - --web.console.templates=/usr/share/prometheus/consoles
+        - --enable-feature=exemplar-storage # Feature from compose command
+        volumeMounts:
+        - name: prometheus-config-volume
+          mountPath: /etc/prometheus/prometheus.yml
+          subPath: prometheus.yml # Mount specific file from ConfigMap
+        - name: prometheus-data-volume
+          mountPath: /prometheus # Mount path for Prometheus data
       volumes:
-        - name: prometheus-config
-          configMap:
-            name: prometheus-config
+      - name: prometheus-config-volume
+        configMap:
+          name: prometheus-config # Refers to the prometheus-config ConfigMap
+      - name: prometheus-data-volume
+        persistentVolumeClaim:
+          claimName: prometheus-data-pvc
 ---
+# Deployment for Tempo
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tempo
   namespace: observabilidad
+  labels:
+    app: tempo
 spec:
   replicas: 1
   selector:
@@ -113,29 +139,38 @@ spec:
         app: tempo
     spec:
       containers:
-        - name: tempo
-          image: grafana/tempo:2.4.1
-          args:
-            - '--target=all'
-            - '--storage.trace.backend=local'
-            - '--storage.trace.local.path=/var/tempo'
-            - '--auth.enabled=false'
-          ports:
-            - containerPort: 4317
-            - containerPort: 4318
-          volumeMounts:
-            - name: tempo-storage
-              mountPath: /var/tempo
+      - name: tempo
+        image: grafana/tempo:2.4.1
+        ports:
+        - containerPort: 4317 # OTLP gRPC
+          name: otlp-grpc
+        - containerPort: 4318 # OTLP HTTP
+          name: otlp-http
+        - containerPort: 9411 # Zipkin
+          name: zipkin
+        - containerPort: 3200 # Tempo (HTTP/gRPC - config dependent)
+          name: tempo-http
+        args: # Replicate command from compose
+        - '--target=all'
+        - '--storage.trace.backend=local'
+        - '--storage.trace.local.path=/var/tempo' # Mount path for Tempo data
+        - '--auth.enabled=false' # As per compose
+        volumeMounts:
+        - name: tempo-data-volume
+          mountPath: /var/tempo # Mount path for Tempo data
       volumes:
-        - name: tempo-storage
-          persistentVolumeClaim:
-            claimName: tempo-pvc
+      - name: tempo-data-volume
+        persistentVolumeClaim:
+          claimName: tempo-data-pvc
 ---
+# Deployment for Grafana
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
   namespace: observabilidad
+  labels:
+    app: grafana
 spec:
   replicas: 1
   selector:
@@ -147,30 +182,30 @@ spec:
         app: grafana
     spec:
       containers:
-        - name: grafana
-          image: grafana/grafana:10.4.2
-          ports:
-            - containerPort: 3000
-          volumeMounts:
-            - name: grafana-datasources
-              mountPath: /etc/grafana/provisioning/datasources
-            - name: grafana-dashboards
-              mountPath: /etc/grafana/provisioning/dashboards
-            - name: grafana-dashboard-definitions
-              mountPath: /etc/grafana/dashboards
+      - name: grafana
+        image: grafana/grafana:10.4.2
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: grafana-datasources-volume
+          mountPath: /etc/grafana/provisioning/datasources # Mount datasources config directory
+        - name: grafana-dashboards-config-volume
+          mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+          subPath: dashboards.yaml # Mount specific file from ConfigMap
+        - name: grafana-dashboard-files-volume
+          mountPath: /etc/grafana/dashboards # Mount dashboard files directory
+        - name: grafana-data-volume
+          mountPath: /var/lib/grafana # Mount path for Grafana data
       volumes:
-        - name: grafana-datasources
-          configMap:
-            name: grafana-datasources
-            items:
-              - key: datasources.yaml
-                path: datasources.yaml
-        - name: grafana-dashboards
-          configMap:
-            name: grafana-dashboards
-            items:
-              - key: dashboards.yaml
-                path: dashboards.yaml
-        - name: grafana-dashboard-definitions
-          configMap:
-            name: grafana-dashboard-definitions
+      - name: grafana-datasources-volume
+        configMap:
+          name: grafana-datasources # Refers to the grafana-datasources ConfigMap
+      - name: grafana-dashboards-config-volume
+        configMap:
+          name: grafana-dashboards # Refers to the grafana-dashboards ConfigMap
+      - name: grafana-dashboard-files-volume
+        configMap:
+          name: grafana-dashboard-files # Refers to the grafana-dashboard-files ConfigMap
+      - name: grafana-data-volume
+        persistentVolumeClaim:
+          claimName: grafana-data-pvc

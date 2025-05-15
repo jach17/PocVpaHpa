@@ -1,21 +1,28 @@
+# Service for Loki
 apiVersion: v1
 kind: Service
 metadata:
-  name: loki
+  name: loki # Service name used by Grafana Alloy and Grafana
   namespace: observabilidad
 spec:
   selector:
     app: loki
   ports:
-    - protocol: TCP
+    - name: http-metrics
+      protocol: TCP
       port: 3100
       targetPort: 3100
+    - name: grpc
+      protocol: TCP
+      port: 9095
+      targetPort: 9095
   type: ClusterIP
----
+
+# Service for Prometheus
 apiVersion: v1
 kind: Service
 metadata:
-  name: prometheus
+  name: prometheus # Service name used by Grafana
   namespace: observabilidad
 spec:
   selector:
@@ -24,41 +31,48 @@ spec:
     - protocol: TCP
       port: 9090
       targetPort: 9090
-  # Si quieres acceder a Prometheus desde fuera del clúster para desarrollo:
-  # type: NodePort
   type: ClusterIP
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: tempo
+  name: tempo # Service name used by Grafana and others sending traces
   namespace: observabilidad
 spec:
   selector:
     app: tempo
   ports:
-    - protocol: TCP
-      name: otlp-grpc
+    - name: otlp-grpc
+      protocol: TCP
       port: 4317
       targetPort: 4317
-    - protocol: TCP
-      name: otlp-http
+    - name: otlp-http
+      protocol: TCP
       port: 4318
       targetPort: 4318
+    # Optional ports depending on your trace exporters:
+    # - name: zipkin
+    #   protocol: TCP
+    #   port: 9411
+    #   targetPort: 9411
+    # - name: tempo-http
+    #   protocol: TCP
+    #   port: 3200
+    #   targetPort: 3200
   type: ClusterIP
 ---
+# Service for Grafana
 apiVersion: v1
 kind: Service
 metadata:
-  name: grafana
+  name: grafana # Service name used by users to access UI
   namespace: observabilidad
 spec:
   selector:
     app: grafana
   ports:
     - protocol: TCP
-      port: 3000
-      targetPort: 3000
-  # Para acceder a Grafana desde tu navegador:
-  type: LoadBalancer # Recomendado para acceso externo estable
-  # type: NodePort    # Alternativa si no tienes LoadBalancer
+      port: 80 # Port exposed by the Service
+      targetPort: 3000 # Port Grafana listens on
+  type: ClusterIP # Change to LoadBalancer or NodePort to access Grafana from outside the cluster
+  # nodePort: 30000 # Uncomment and set if using NodePort (range 30000-32767)
