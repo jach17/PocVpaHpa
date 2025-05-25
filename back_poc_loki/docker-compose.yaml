@@ -5,13 +5,13 @@ services:
     #image: repo/User-api
     container_name: user-service
     build:
-      context: .
+      context: ./user-service
       dockerfile: Dockerfile
     command: >
       sh -c 'poetry run uvicorn app.infrastructure.api.main:app --host 0.0.0.0 --port 3002 2>&1 | tee /var/log/containers/user-service.log'
     restart: unless-stopped
     env_file:
-      - .env
+      - /user-service/.env
     ports:
       - "3002:3002"
     networks:

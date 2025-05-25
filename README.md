@@ -1,32 +1,53 @@
-# PocVpaHpa
-POC implementing vpa and hpa autoscaler
-#POC implementig Grafana, Loki, Tempo y Prometheus
+# Monitoreo y observabilidad
 
-##Ejecutar como contenedores de monitoreo:
+Se configuran con contendores de docker herramientas de monitoreo que funcionan en conjunto con un grupo de microservicios que realizan peticiones entre ellos y hacia un servicio externo, con esto podemos generar metricas, trazas y logs. 
+Se utilizan microservicios en python usando el arquetipo de FastApi y de Net8
 
+##Configuración de herramientas - Grafana, Loki, Tempo y Prometheus
 
-###Ubicado en la raíz:
-1. Ejecuta el comando que configura las herramientas de monitorieo:
+###Ejecutar como contenedores de monitoreo:
+Ubicado en la carpeta `containers`:
+1. Enciende las herramiientas de monitorieo:
 
-Esto va a levantar 5 contenedores, grafana, grafana-alloy, loki y tempo y prometheus, utilizará los archivos de configuración de la carpeta `monitoring`
+Esto va a levantar 5 contenedores de docker: 
+- grafana
+- grafana-alloy
+- loki
+- tempo
+- prometheus
 
+Y para su correcto funcionamiento utilizarán los archivos de configuración de la carpeta `monitoring`
+
+Ejecuta el siguiente comando para que se levanten los contenedores:
 ``` bash
 > docker compose up -d
 ```
+Este comando, además de generar los contenedores, también crea una red y volumen compartidos para los distintos recursos y para el almacenamiento y procesamiento de log y de trazas.
 
-###Ubicado en el microservicio a levantar:
-Ruta - ./back_poc_loki/`{{service}}`
+---
+
+##Enlaza los microservicios para monitoreo de trazas, logs y metricas
+
+Se cuenta con la carpeta de `back_poc_loki` existen microservicios que funcionan en conjunto, para levantarlos se puede ejecutar el archivo de docker compose de cada microservicio, o el archivo docker compose que levanta a todos los microservicios juntos. 
+
+###Levantar un solo microservicio:
+Ubicado en la ruta de el microservicio a levantar:
+``` bash
+~ ./back_poc_loki/`{{service}}`
+```
 
 
 2. Asigna las variables de entorno
 
 ```
+#Presindibles si no utilizas una base de datos
 DB_HOST=localhost
 DB_PORT=5431
 DB_NAME=dbname
 DB_SCHEMA=public
 DB_USER=user
 DB_PASSWORD=password
+#Requeridas para el funcionamiento del monitoreo y de conexión entre microservicios
 Empty_BASE_URL=https://rickandmortyapi.com/
 APP_NAME=user-service
 EXPORT=3002
@@ -52,9 +73,4 @@ De esta se obtiene una respuesta como la que se muestra a continuación:
 }
 ```
 
-Ahora puedes visualizar nuevas metricas en el tablero precargado de grafana
-
-
-
-
-5. Explicación del tablero:
+Ahora puedes visualizar nuevas metricas en el tablero precargado de grafana: `FastApiObservabilty`
