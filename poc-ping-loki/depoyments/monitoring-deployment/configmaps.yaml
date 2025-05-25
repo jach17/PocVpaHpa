@@ -1,3 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tempo-config
+  namespace: observabilidad
+data:
+  tempo.yaml: |-
+    server:
+      http_listen_port: 4318
+      grpc_listen_port: 4317
+      log_level: debug
+      grpc_server_max_recv_msg_size: 52428800
+      grpc_server_max_send_msg_size: 52428800
+
+    distributor:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+            http:
+
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo
+
+    auth_enabled: false
+---
 # ConfigMap: Grafana Alloy Configuration
 apiVersion: v1
 kind: ConfigMap

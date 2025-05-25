@@ -20,7 +20,7 @@ metadata:
   namespace: observabilidad
 spec:
   accessModes:
-    - ReadWriteOnce # Typical for single pod access
+    - ReadWriteMany # Typical for single pod access
   resources:
     requests:
       storage: 2Gi # Adjust size as needed for logs
@@ -34,7 +34,7 @@ metadata:
   namespace: observabilidad
 spec:
   accessModes:
-    - ReadWriteOnce # Typical for single pod access
+    - ReadWriteMany # Typical for single pod access
   resources:
     requests:
       storage: 2Gi # Adjust size as needed for metrics
@@ -49,7 +49,7 @@ metadata:
   namespace: observabilidad
 spec:
   accessModes:
-    - ReadWriteOnce # Typical for single pod access
+    - ReadWriteMany # Typical for single pod access
   resources:
     requests:
       storage: 2Gi # Adjust size as needed for traces
@@ -64,7 +64,7 @@ metadata:
   namespace: observabilidad
 spec:
   accessModes:
-    - ReadWriteOnce # Typical for single pod access
+    - ReadWriteMany # Typical for single pod access
   resources:
     requests:
       storage: 2Gi # Adjust size as needed for Grafana DB, plugins, etc.

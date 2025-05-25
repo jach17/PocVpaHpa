@@ -36,29 +36,18 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tempo # Service name used by Grafana and others sending traces
+  name: tempo
   namespace: observabilidad
 spec:
   selector:
     app: tempo
   ports:
-    - name: otlp-grpc
-      protocol: TCP
-      port: 4317
-      targetPort: 4317
-    - name: otlp-http
-      protocol: TCP
+    - name: http
       port: 4318
       targetPort: 4318
-    # Optional ports depending on your trace exporters:
-    # - name: zipkin
-    #   protocol: TCP
-    #   port: 9411
-    #   targetPort: 9411
-    # - name: tempo-http
-    #   protocol: TCP
-    #   port: 3200
-    #   targetPort: 3200
+    - name: grpc
+      port: 4317
+      targetPort: 4317
   type: LoadBalancer
 ---
 # Service for Grafana

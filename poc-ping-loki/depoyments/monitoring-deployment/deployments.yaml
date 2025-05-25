@@ -114,7 +114,6 @@ spec:
         persistentVolumeClaim:
           claimName: prometheus-data-pvc
 ---
-# Deployment for Tempo
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -133,29 +132,30 @@ spec:
         app: tempo
     spec:
       containers:
-      - name: tempo
-        image: grafana/tempo:2.4.1
-        ports:
-        - containerPort: 4317 # OTLP gRPC
-          name: otlp-grpc
-        - containerPort: 4318 # OTLP HTTP
-          name: otlp-http
-        - containerPort: 9411 # Zipkin
-          name: zipkin
-        - containerPort: 3200 # Tempo (HTTP/gRPC - config dependent)
-          name: tempo-http
-        args: # Replicate command from compose
-        - '--target=all'
-        - '--storage.trace.backend=local'
-        - '--storage.trace.local.path=/var/tempo' # Mount path for Tempo data
-        - '--auth.enabled=false' # As per compose
-        volumeMounts:
-        - name: tempo-data-volume
-          mountPath: /var/tempo # Mount path for Tempo data
+        - name: tempo
+          image: grafana/tempo:2.7.0
+          ports:
+            - name: grpc
+              containerPort: 4317
+            - name: http
+              containerPort: 4318
+          args:
+            - "/tempo" # Esta línea es crucial: le dice que ejecute el binario de Tempo
+            - "-config.file=/etc/tempo/tempo.yaml"
+          volumeMounts:
+            - name: tempo-config-volume
+              mountPath: /etc/tempo
+              readOnly: true
+            - name: tempo-storage
+              mountPath: /var/tempo
       volumes:
-      - name: tempo-data-volume
-        persistentVolumeClaim:
-          claimName: tempo-data-pvc
+        - name: tempo-config-volume
+          configMap:
+            name: tempo-config
+        - name: tempo-storage
+          persistentVolumeClaim:
+            claimName: tempo-data-pvc
+
 ---
 # Deployment for Grafana
 apiVersion: apps/v1
