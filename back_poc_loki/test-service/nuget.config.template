@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <packageSources>
+        <add key="NexusAxity" value="https://devtools.axity.com/nexus/repository/nuget-hosted/" />
+    </packageSources>
+    <packageSourceCredentials>
+        <NexusAxity>
+            <add key="Username" value="USER" />
+            <add key="ClearTextPassword" value="PW" />
+        </NexusAxity>
+    </packageSourceCredentials>
+</configuration>

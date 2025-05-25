@@ -1,0 +1,72 @@
+services:
+    grafana-alloy:
+        image: grafana/agent:latest
+        volumes:
+            - ./monitoring/alloy/alloy-config.yaml:/etc/agent/agent.yaml
+            - shared-logs:/var/log/containers
+        command: -config.file=/etc/agent/agent.yaml
+        depends_on:
+            - loki
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
+
+    loki:
+        image: grafana/loki:3.0.0
+        command: -config.file=/etc/loki/local-config.yaml
+        ports:
+            - '3100:3100'
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
+            
+
+    prometheus:
+        image: prom/prometheus:v2.51.2
+        ports:
+            - '9090:9090'
+        volumes:
+            - ./monitoring/prometheus:/workspace
+        command:
+            - --config.file=/workspace/prometheus.yml
+            - --enable-feature=exemplar-storage
+        depends_on:
+            - loki
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
+
+    tempo:
+        image: grafana/tempo:2.4.1
+        command:
+            [
+                '--target=all',
+                '--storage.trace.backend=local',
+                '--storage.trace.local.path=/var/tempo',
+                '--auth.enabled=false',
+            ]
+        ports:
+            - '4317:4317'
+            - '4318:4318'
+        depends_on:
+            - loki
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
+
+    grafana:
+        image: grafana/grafana:10.4.2
+        ports:
+            - '3000:3000'
+        volumes:
+            - ./monitoring/grafana/:/etc/grafana/provisioning/datasources
+            - ./monitoring/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+            - ./monitoring/dashboards:/etc/grafana/dashboards
+        depends_on:
+            - loki
+            - prometheus
+        networks:
+          - mi_red_observabilidad # Asigna este servicio a la red
+
+volumes:
+    shared-logs:
+# --- Define la sección networks aquí ---
+networks:
+  mi_red_observabilidad: # Este es el nombre de tu red personalizada
+    driver: bridge # Opcional, bridge es el driver por defecto

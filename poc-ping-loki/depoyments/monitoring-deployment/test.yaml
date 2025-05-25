@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug-mount
+  namespace: observabilidad
+spec:
+  containers:
+    - name: debug
+      image: busybox
+      command: ["/bin/sh", "-c"]
+      args: ["sleep infinity"]
+      volumeMounts:
+        - name: alloy-config
+          mountPath: /check
+  volumes:
+    - name: alloy-config
+      configMap:
+        name: alloy-config

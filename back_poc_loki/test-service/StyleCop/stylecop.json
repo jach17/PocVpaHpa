@@ -1,0 +1,9 @@
+{
+	"$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+	"settings": {
+		"documentationRules": {
+			"companyName": "Axity",
+			"copyrightText": "This source code is Copyright Axity and MAY NOT be copied, reproduced,\npublished, distributed or transmitted to or stored in any manner without prior\nwritten consent from Axity (www.axity.com)."
+		}
+	}
+}

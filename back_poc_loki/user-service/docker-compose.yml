@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  api:
+    #image: repo/User-api
+    container_name: user-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      sh -c 'poetry run uvicorn app.infrastructure.api.main:app --host 0.0.0.0 --port 3002 2>&1 | tee /var/log/containers/user-service.log'
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3002:3002"
+    networks:
+      - containers_mi_red_observabilidad # Asigna este servicio a la red
+    volumes:
+      - containers_shared-logs:/var/log/containers
+
+# --- Referencia el volumen compartido como EXTERNO ---
+# Indica a Docker Compose que este volumen ya existe (creado por otro archivo o manualmente)
+volumes:
+    containers_shared-logs:
+        external: true
+
+# --- Referencia la red compartida como EXTERNA ---
+# Indica a Docker Compose que esta red ya existe (creada por otro archivo o manualmente)
+networks:
+  containers_mi_red_observabilidad:
+    external: true
