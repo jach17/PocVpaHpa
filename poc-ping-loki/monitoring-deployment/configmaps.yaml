@@ -30,14 +30,8 @@ data:
           - regex:
                 expression: '/var/log/containers/(?P<compose_service>[^/]+)\.log$'
                 source: filename
-          - json:
-              expressions:
-                http_method: 'method'
-                http_status: "status"
           - labels:
-              http_method:
               compose_service:
-              http_status:
 
 # # ConfigMap: Grafana Alloy Configuration
 # apiVersion: v1
