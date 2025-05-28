@@ -2,9 +2,16 @@
 
 Este README documenta el despliegue de [Grafana Tempo](https://grafana.com/oss/tempo/) y [Grafana Alloy](https://grafana.com/docs/alloy/latest/) en un clúster de Kubernetes, junto con su configuración en Grafana para visualizar trazas.
 
----
-
 ## 🚀 Paso a paso
+
+### 0. Helm Grafana Update
+---
+Antes que otra cosa, y ya con helm instalado, agrega grafana repo pa usarlo
+``` bash
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+```
+
 
 ### 1. Crear Namespace
 
@@ -59,10 +66,18 @@ kubectl apply -f grafana.yaml -n tt
 
 ### 4. Instalar Alloy (Agente de trazas)
 
-Instala Grafana Alloy, el agente que enviará trazas, usando tu archivo `values.yaml`:
+Instala Grafana Alloy, el agente que enviará trazas, usando tu archivo `values.yaml`, asegurate de que la linea 
 
+`endpoint = "http://tempo-distributor.tt.svc.cluster.local:4317"` 
+
+apunta al service de tu  distributor de tempo, algo similar a:  
+
+`http://{{SERVICE_NAME}}.{{NAMESPCAE}}.svc.cluster.local:{{4317}}`
+
+
+Y ahora sí procede con la instalación:
 ```bash
-helm install -f values.yaml grafana-alloy grafana/alloy
+helm install -f values.yaml grafana-alloy grafana/alloy -n tt
 ```
 
 ---
@@ -92,12 +107,14 @@ Una vez que todo esté desplegado, configura la conexión a Tempo en Grafana:
 
 Tu aplicación deberá enviar trazas al siguiente endpoint:
 
-```text
-http://trace-collector-opentelemetry-collector:4317
+```bash
+http://service-collector:4317
 ```
 
-Este es el receptor gRPC del agente Alloy que reenvía las trazas a Tempo.
-
+En este caso, apunta al receptor gRPC del agente Alloy que reenvía las trazas a Tempo.
+```bash
+http://grafana-alloy:4317
+```
 ---
 
 ## ✅ Resultado

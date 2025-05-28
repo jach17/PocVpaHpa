@@ -1,71 +1,110 @@
+# 4. Promtail ConfigMap with JSON parsing stage
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: tempo-config
-  namespace: observabilidad
+  name: promtail-config
+  namespace: tt
 data:
-  tempo.yaml: |-
+  config.yaml: |
     server:
-      http_listen_port: 4318
-      grpc_listen_port: 4317
-      log_level: debug
-      grpc_server_max_recv_msg_size: 52428800
-      grpc_server_max_send_msg_size: 52428800
+      http_listen_port: 9080
+      grpc_listen_port: 0
+      log_level: "info"
 
-    distributor:
-      receivers:
-        otlp:
-          protocols:
-            grpc:
-            http:
+    positions:
+      filename: /tmp/positions.yaml
 
-    storage:
-      trace:
-        backend: local
-        local:
-          path: /var/tempo
+    clients:
+      - url: http://loki-gateway.tt.svc.cluster.local/loki/api/v1/push
+        tenant_id: fake  # This adds the X-Scope-OrgID header
 
-    auth_enabled: false
----
-# ConfigMap: Grafana Alloy Configuration
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: alloy-config
-  namespace: observabilidad
-data:
-  alloy-config.yaml: |-
-    server:
-      log_level: info
+    scrape_configs:
+      - job_name: docker-logs
+        static_configs:
+          - targets:
+              - localhost
+            labels:
+              job: docker-logs
+              __path__: /var/log/containers/*.log
+        pipeline_stages:
+          - regex:
+                expression: '/var/log/containers/(?P<compose_service>[^/]+)\.log$'
+                source: filename
+          - json:
+              expressions:
+                http_method: 'method'
+                http_status: "status"
+          - labels:
+              http_method:
+              compose_service:
+              http_status:
 
-    logs:
-      configs:
-        - name: docker-logs
-          clients:
-            - url: http://loki:3100/loki/api/v1/push # Assuming 'loki' is the Service name for Loki
-          positions:
-            filename: /tmp/positions.yaml
-          scrape_configs:
-            - job_name: docker-logs
-              static_configs:
-                - targets: []
-                  labels:
-                    job: docker-logs
-                    __path__: /var/log/containers/*.log # Pointing to the shared log volume mount
+# # ConfigMap: Grafana Alloy Configuration
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: alloy-config
+#   namespace: tt
+# data:
+#   alloy-config.yaml: |-
+#     server:
+#       log_level: info
 
-              pipeline_stages:
-                - regex:
-                    expression: '/var/log/containers/(?P<compose_service>[^/]+)\.log$' # Extracting service name from filename
-                    source: filename
-                - labels:
-                    compose_service:
+#     logs:
+#       configs:
+#         - name: docker-logs
+#           clients:
+#             - url: http://loki:3100/loki/api/v1/push # Assuming 'loki' is the Service name for Loki
+#           positions:
+#             filename: /tmp/positions.yaml
+#           scrape_configs:
+#             - job_name: docker-logs
+#               static_configs:
+#                 - targets: []
+#                   labels:
+#                     job: docker-logs
+#                     __path__: /var/log/containers/*.log # Pointing to the shared log volume mount
+
+#               pipeline_stages:
+#                 - regex:
+#                     expression: '/var/log/containers/(?P<compose_service>[^/]+)\.log$' # Extracting service name from filename
+#                     source: filename
+#                 - labels:
+#                     compose_service:
+
+# # otelcol.receiver.otlp "otlp_receiver" {
+# #       grpc {
+# #         endpoint = "0.0.0.0:4317" # Alloy escuchará trazas OTLP vía gRPC aquí
+# #       }
+# #       output {
+# #         # Envía las trazas recibidas al exportador de Tempo.
+# #         traces = [
+# #           otelcol.exporter.otlp.tempo.input,
+# #         ]
+# #       }
+# #     }
+
+# #     # Define un exportador OTLP gRPC para enviar trazas a Tempo.
+# #     otelcol.exporter.otlp "tempo" {
+# #       client {
+# #         # El endpoint de tu servicio Tempo en Kubernetes.
+# #         # Asegúrate de que esta URL coincida con el nombre y namespace reales de tu Service de Tempo.
+# #         endpoint = "http://tempo-distributor.tt.svc.cluster.local:4317"
+# #         # Deshabilita TLS. Ten precaución: NO SEGURO PARA PRODUCCIÓN.
+# #         tls {
+# #           insecure = true
+# #           insecure_skip_verify = true
+# #         }
+# #       }
+# #     }
+
 ---
 # ConfigMap: Prometheus Configuration
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
-  namespace: observabilidad
+  namespace: tt
 data:
   prometheus.yml: |-
     global:
@@ -122,7 +161,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-datasources
-  namespace: observabilidad
+  namespace: tt
 data:
   datasources.yaml: |-
     # config file version
@@ -213,7 +252,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-dashboards
-  namespace: observabilidad
+  namespace: tt
 data:
   dashboards.yaml: |-
     apiVersion: 1
@@ -235,7 +274,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-dashboard-files
-  namespace: observabilidad
+  namespace: tt
 data:
   tu_dashboard.json: |- # Example dashboard file
     {

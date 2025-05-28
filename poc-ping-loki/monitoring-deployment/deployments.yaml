@@ -1,82 +1,115 @@
-# Deployment for Grafana Alloy (Agent)
+# 3. Promtail to ship logs to Loki with JSON parsing
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grafana-alloy
-  namespace: observabilidad
-  labels:
-    app: grafana-alloy
+  name: promtail
+  namespace: tt
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: grafana-alloy
+      app: promtail
   template:
     metadata:
       labels:
-        app: grafana-alloy
+        app: promtail
     spec:
       containers:
-      - name: agent
-        image: grafana/agent:latest
+      - name: promtail
+        image: grafana/promtail:3.4.3
         args:
-        - -config.file=/etc/agent/agent.yaml
+        - -config.file=/etc/promtail/config.yaml
         volumeMounts:
-        - name: alloy-config-volume
-          mountPath: /etc/agent/agent.yaml
-          subPath: alloy-config.yaml # Mount specific file from ConfigMap
         - name: shared-logs-volume
-          mountPath: /var/log/containers # Mount the shared log volume
+          mountPath: /var/log/containers
+        - name: promtail-config
+          mountPath: /etc/promtail
       volumes:
-      - name: alloy-config-volume
-        configMap:
-          name: alloy-config
       - name: shared-logs-volume
         persistentVolumeClaim:
           claimName: shared-logs-pvc
----
+      - name: promtail-config
+        configMap:
+          name: promtail-config
+# # Deployment for Grafana Alloy (Agent)
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: grafana-alloy
+#   namespace: tt
+#   labels:
+#     app: grafana-alloy
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: grafana-alloy
+#   template:
+#     metadata:
+#       labels:
+#         app: grafana-alloy
+#     spec:
+#       containers:
+#       - name: agent
+#         image: grafana/agent:latest
+#         args:
+#         - -config.file=/etc/agent/agent.yaml
+#         volumeMounts:
+#         - name: alloy-config-volume
+#           mountPath: /etc/agent/agent.yaml
+#           subPath: alloy-config.yaml # Mount specific file from ConfigMap
+#         - name: shared-logs-volume
+#           mountPath: /var/log/containers # Mount the shared log volume
+#       volumes:
+#       - name: alloy-config-volume
+#         configMap:
+#           name: alloy-config
+#       - name: shared-logs-volume
+#         persistentVolumeClaim:
+#           claimName: shared-logs-pvc
+# ---
 # Deployment for Loki
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: loki
-  namespace: observabilidad
-  labels:
-    app: loki
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: loki
-  template:
-    metadata:
-      labels:
-        app: loki
-    spec:
-      containers:
-      - name: loki
-        image: grafana/loki:3.0.0
-        ports:
-        - containerPort: 3100
-          name: http-metrics
-        - containerPort: 9095
-          name: grpc
-        args:
-        - -config.file=/etc/loki/local-config.yaml
-        volumeMounts:
-        - name: loki-data-volume
-          mountPath: /loki # Mount path specified in the dummy configmap
-      volumes:
-      - name: loki-data-volume
-        persistentVolumeClaim:
-          claimName: loki-data-pvc
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: loki
+#   namespace: tt
+#   labels:
+#     app: loki
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: loki
+#   template:
+#     metadata:
+#       labels:
+#         app: loki
+#     spec:
+#       containers:
+#       - name: loki
+#         image: grafana/loki:3.0.0
+#         ports:
+#         - containerPort: 3100
+#           name: http-metrics
+#         - containerPort: 9095
+#           name: grpc
+#         args:
+#         - -config.file=/etc/loki/local-config.yaml
+#         volumeMounts:
+#         - name: loki-data-volume
+#           mountPath: /loki # Mount path specified in the dummy configmap
+#       volumes:
+#       - name: loki-data-volume
+#         persistentVolumeClaim:
+#           claimName: loki-data-pvc
 ---
 # Deployment for Prometheus
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus
-  namespace: observabilidad
+  namespace: tt
   labels:
     app: prometheus
 spec:
@@ -114,59 +147,15 @@ spec:
         persistentVolumeClaim:
           claimName: prometheus-data-pvc
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tempo
-  namespace: observabilidad
-  labels:
-    app: tempo
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: tempo
-  template:
-    metadata:
-      labels:
-        app: tempo
-    spec:
-      containers:
-        - name: tempo
-          image: grafana/tempo:2.7.0
-          ports:
-            - name: grpc
-              containerPort: 4317
-            - name: http
-              containerPort: 4318
-          args:
-            - "/tempo" # Esta línea es crucial: le dice que ejecute el binario de Tempo
-            - "-config.file=/etc/tempo/tempo.yaml"
-          volumeMounts:
-            - name: tempo-config-volume
-              mountPath: /etc/tempo
-              readOnly: true
-            - name: tempo-storage
-              mountPath: /var/tempo
-      volumes:
-        - name: tempo-config-volume
-          configMap:
-            name: tempo-config
-        - name: tempo-storage
-          persistentVolumeClaim:
-            claimName: tempo-data-pvc
-
----
 # Deployment for Grafana
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grafana
-  namespace: observabilidad
   labels:
     app: grafana
+  name: grafana
+  namespace: tt
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: grafana
@@ -175,11 +164,40 @@ spec:
       labels:
         app: grafana
     spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+          - 0
       containers:
       - name: grafana
-        image: grafana/grafana:10.4.2
+        image: grafana/grafana:latest
+        imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 3000
+          - containerPort: 3000
+            name: http-grafana
+            protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /robots.txt
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 2
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 3000
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 250m
+            memory: 750Mi
         volumeMounts:
         - name: grafana-datasources-volume
           mountPath: /etc/grafana/provisioning/datasources # Mount datasources config directory
@@ -188,7 +206,7 @@ spec:
           subPath: dashboards.yaml # Mount specific file from ConfigMap
         - name: grafana-dashboard-files-volume
           mountPath: /etc/grafana/dashboards # Mount dashboard files directory
-        - name: grafana-data-volume
+        - name: grafana-pv
           mountPath: /var/lib/grafana # Mount path for Grafana data
       volumes:
       - name: grafana-datasources-volume
@@ -200,6 +218,6 @@ spec:
       - name: grafana-dashboard-files-volume
         configMap:
           name: grafana-dashboard-files # Refers to the grafana-dashboard-files ConfigMap
-      - name: grafana-data-volume
+      - name: grafana-pv
         persistentVolumeClaim:
-          claimName: grafana-data-pvc
+          claimName: grafana-pvc
