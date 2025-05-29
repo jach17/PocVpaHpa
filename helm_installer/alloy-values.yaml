@@ -1,45 +1,36 @@
 alloy:
+  configMap:
+    content: |
+      // OTLP receiver configuration
+      otelcol.receiver.otlp "otlp_receiver" {
+        grpc {
+          endpoint = "0.0.0.0:4317"
+        }
+        http {
+          endpoint = "0.0.0.0:4318"
+        }
+        output {
+          traces = [otelcol.exporter.otlp.tempo.input]
+        }
+      }
+      
+      // OTLP exporter to Tempo
+      otelcol.exporter.otlp "tempo" {
+        client {
+          endpoint = "tempo:4317"
+          tls {
+            insecure = true
+          }
+        }
+      }
+
+  # Extra ports to expose OTLP receivers
   extraPorts:
     - name: otlp-grpc
       port: 4317
       targetPort: 4317
       protocol: TCP
-  configMap:
-    create: true
-    content: |-
-      // Creates a receiver for OTLP gRPC.
-      // You can easily add receivers for other protocols by using the correct component
-      // from the reference list at: https://grafana.com/docs/alloy/latest/reference/components/
-      otelcol.receiver.otlp "otlp_receiver" {
-        // Listen on all available bindable addresses on port 4317 (which is the
-        // default OTLP gRPC port) for the OTLP protocol.
-        grpc {
-          endpoint = "0.0.0.0:4317"
-        }
-
-        // Output straight to the OTLP gRPC exporter. We would usually do some processing
-        // first, most likely batch processing, but for this example we pass it straight
-        // through.
-        output {
-          traces = [
-            otelcol.exporter.otlp.tempo.input,
-          ]
-        }
-      }
-
-      // Define an OTLP gRPC exporter to send all received traces to GET.
-      // The unique label 'tempo' is added to uniquely identify this exporter.
-      otelcol.exporter.otlp "tempo" {
-          // Define the client for exporting.
-          client {
-              // Send to the locally running Tempo instance, on port 4317 (OTLP gRPC).
-              endpoint = "http://tempo-distributor.tt.svc.cluster.local:4317"
-              // Disable TLS for OTLP remote write.
-              tls {
-                  // The connection is insecure.
-                  insecure = true
-                  // Do not verify TLS certificates when connecting.
-                  insecure_skip_verify = true
-              }
-          }
-      }
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
