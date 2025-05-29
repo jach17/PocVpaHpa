@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: transaction-service
+  namespace: monitoring
 spec:
   selector:
     app: transaction-service

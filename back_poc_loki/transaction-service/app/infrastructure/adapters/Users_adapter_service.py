@@ -1,3 +1,4 @@
+import logging
 from types import MappingProxyType
 
 from app.core.application.ports.Users_adapter_port import UsersAdapterPort
@@ -18,15 +19,16 @@ class UsersAdapterService(UsersAdapterPort):
 
     async def get_Users_by_id(self, Users_id: str) -> UsersDto:
         try:
-            print("On Users adapter service start ---")
+            logging.error("On Users adapter service start ---")
             url = Users_ENDPOINTS['get_character']
             get_character_by_id_url = f"{url}?Empty_id={Users_id}"
 
-            print(f"Trying to get to URL = {get_character_by_id_url}")
+            logging.error(f"Trying to get to URL = {get_character_by_id_url}")
 
             response = self._http_client.get(
                 endpoint=get_character_by_id_url
             )
             return UsersDto.from_dict(response)
         except Exception as error:
+            logging.error(f"Error on get petition - {error}")
             raise BusinessError(f"Error on get petition - {error}")
