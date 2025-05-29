@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-service
-  namespace: tt
+  namespace: monitoring
   labels:
     app: user-service
 spec:
