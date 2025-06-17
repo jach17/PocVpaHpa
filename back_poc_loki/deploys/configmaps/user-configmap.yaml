@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-env
+  namespace: tt
+data:
+  DB_HOST: localhost
+  DB_PORT: "5431"
+  DB_NAME: dbname
+  DB_SCHEMA: public
+  DB_USER: user
+  DB_PASSWORD: password
+  Empty_BASE_URL: https://rickandmortyapi.com/
+  APP_NAME: user-service
+  EXPORT: "3002"
+  OTLP_GRPC_ENDPOINT: http://grafana-alloy:4317

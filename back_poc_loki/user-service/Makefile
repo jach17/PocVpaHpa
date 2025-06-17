@@ -8,3 +8,6 @@ rebuild:
 
 test_coverage:
 	pytest --cov=app --cov-report=html --cov-report=xml --cov-config=.coveragerc
+
+build_image:
+	docker build -t user-service-api:1.0.0 .

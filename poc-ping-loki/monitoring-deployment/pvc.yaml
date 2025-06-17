@@ -1,0 +1,55 @@
+# PersistentVolumeClaim for shared logs (requires ReadWriteMany PV)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-logs-pvc
+  namespace: tt
+spec:
+  accessModes:
+    - ReadWriteMany # Needed for multiple pods to write/read simultaneously
+  resources:
+    requests:
+      storage: 2Gi # Adjust size as needed
+  # storageClassName: your-storage-class # Uncomment and specify if you have a specific StorageClass for RWX
+# ---
+# # PersistentVolumeClaim for Loki data
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: loki-data-pvc
+#   namespace: tt
+# spec:
+#   accessModes:
+#     - ReadWriteMany # Typical for single pod access
+#   resources:
+#     requests:
+#       storage: 2Gi # Adjust size as needed for logs
+#   # storageClassName: standard # Uncomment and specify your preferred StorageClass
+# ---
+# # PersistentVolumeClaim for Prometheus data
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: prometheus-data-pvc
+#   namespace: tt
+# spec:
+#   accessModes:
+#     - ReadWriteMany # Typical for single pod access
+#   resources:
+#     requests:
+#       storage: 2Gi # Adjust size as needed for metrics
+#   # storageClassName: standard # Uncomment and specify your preferred StorageClass
+# ---
+# # PersistentVolumeClaim for Grafana data
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: grafana-pvc
+#   namespace: tt
+# spec:
+#   accessModes:
+#     - ReadWriteOnce # Typical for single pod access
+#   resources:
+#     requests:
+#       storage: 1Gi # Adjust size as needed for Grafana DB, plugins, etc.
+#   # storageClassName: standard # Uncomment and specify your preferred StorageClass

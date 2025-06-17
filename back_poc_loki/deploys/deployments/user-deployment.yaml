@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-service
+  namespace: tt
+  labels:
+    app: user-service
 spec:
   replicas: 1
   selector:
@@ -13,8 +16,22 @@ spec:
         app: user-service
     spec:
       containers:
-        - name: user-api
-          image: user-service-api:latest
-          imagePullPolicy: Never
-          ports:
-            - containerPort: 3002
+      - name: user-api
+        image: user-service-api:1.0.0
+        envFrom:
+            - configMapRef:
+                name: user-service-env
+        ports:
+        - containerPort: 3002
+        command:
+        - sh
+        - -c
+        - >
+          uvicorn app.infrastructure.api.main:app --host 0.0.0.0 --port 3002 2>&1 | tee /var/log/containers/user-service.log
+        volumeMounts:
+        - name: shared-logs-volume
+          mountPath: /var/log/containers
+      volumes:
+      - name: shared-logs-volume
+        persistentVolumeClaim:
+          claimName: shared-logs-pvc
