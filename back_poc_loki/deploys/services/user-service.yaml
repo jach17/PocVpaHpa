@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: user-service
-  namespace: monitoring
+  namespace: tt
 spec:
   selector:
     app: user-service

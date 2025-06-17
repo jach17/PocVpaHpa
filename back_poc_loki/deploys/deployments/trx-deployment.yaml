@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: transaction-service
-  namespace: monitoring
+  namespace: tt
   labels:
     app: transaction-service
 spec:

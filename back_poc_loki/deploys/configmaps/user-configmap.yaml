@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: user-service-env
-  namespace: monitoring
+  namespace: tt
 data:
   DB_HOST: localhost
   DB_PORT: "5431"
@@ -13,4 +13,4 @@ data:
   Empty_BASE_URL: https://rickandmortyapi.com/
   APP_NAME: user-service
   EXPORT: "3002"
-  OTLP_GRPC_ENDPOINT: http://alloy:4317
+  OTLP_GRPC_ENDPOINT: http://grafana-alloy:4317
