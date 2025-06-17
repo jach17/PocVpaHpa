@@ -24,7 +24,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "fep745gtliarke"
+        "uid": "bep79s990vxmoc"
       },
       "fieldConfig": {
         "defaults": {},
@@ -48,7 +48,7 @@
         "sortOrder": "Descending",
         "wrapLogMessage": true
       },
-      "pluginVersion": "12.0.1",
+      "pluginVersion": "12.0.1+security-01",
       "targets": [
         {
           "datasource": {
@@ -68,7 +68,7 @@
     {
       "datasource": {
         "type": "tempo",
-        "uid": "fep746zhniadcd"
+        "uid": "cep79w34v3yf4f"
       },
       "fieldConfig": {
         "defaults": {},
@@ -95,16 +95,16 @@
           ]
         }
       },
-      "pluginVersion": "12.0.1",
+      "pluginVersion": "12.0.1+security-01",
       "targets": [
         {
           "datasource": {
             "type": "tempo",
-            "uid": "fep746zhniadcd"
+            "uid": "cep79w34v3yf4f"
           },
           "limit": 20,
           "metricsQueryType": "range",
-          "query": "58c090dad732f9b15d1554b06c7eb3e8",
+          "query": "$TraceId",
           "queryType": "traceql",
           "refId": "A",
           "tableType": "traces"
@@ -131,8 +131,8 @@
       },
       {
         "current": {
-          "text": "518a0e7d7b2e1e256978e5f24e390d03",
-          "value": "518a0e7d7b2e1e256978e5f24e390d03"
+          "text": "d5d3d240461ffaa5fca516008719a2e0",
+          "value": "d5d3d240461ffaa5fca516008719a2e0"
         },
         "name": "TraceId",
         "options": [],

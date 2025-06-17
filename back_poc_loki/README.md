@@ -10,5 +10,11 @@ make build_image
 ## Deploy services
 Para desplegar los servicios en el cluster de K8s se tiene la carpeta deploys, para ello, ubicado en la carpeta `"PocVpaHpa\back_poc_loki>"` aplica el siguiente comando:
 ```bash
-kubectl apply -R -f .\deploys\
+kubectl apply -R -f .\deploys\ -n tt
+```
+## Genrando trazas
+Los microservicios existentes estan construidos para poder generar información a partir del siguiente curl, por lo que solo debes lanzar esta peticion y podrás visualizar en el dashboard de grafana todo el detalle:
+
+```bash
+
 ```

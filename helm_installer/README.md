@@ -37,7 +37,7 @@ Para nuestra instalación de tempo y loki, vamos a completar nuestro stack con e
 Para esto, dentro de la carpeta de los instaladores de helm aplicamos el siguiente comando:
 `"PocVpaHpa\helm_installer>"`
 ```bash
-~ kubectl apply -f .\grafana.yaml
+~ kubectl apply -f .\grafana.yaml -n tt
 ```
 
 ## - Instalar Tempo con configuración personalizada
@@ -126,17 +126,10 @@ Como continuación de nuestro stack de observabilidad vamos a integrar Grafana L
 helm install loki grafana/loki --version 6.29.0 --values loki-values.yaml -n tt
 ```
 
-De la misma forma que utilizamos alloy como gestor de trazas, para la recuperación de logs utilizaremos una imagen de Promtail, para esa configuración utilizaremos los archivos `configmaps.yaml`, `deployments.yaml` que son los necesarios para levantar la imagen de promtail utilizando
+De la misma forma que utilizamos alloy como gestor de trazas, para la recuperación de logs utilizaremos una imagen de Promtail, para esa configuración utilizaremos el archivo `promtail.yaml` que contiene los manifiestos necesarios para levantar la imagen de promtail utilizando un configmap para configuraciones y un deployment para levantar la imagen, con el siguiente comando:
 
-Dentro de la carpeta:
-`"PocVpaHpa\poc-ping-loki\monitoring-deployment>"`
 ```bash
-~ kubectl apply -f .\configmaps.yaml
-```
-Dentro de la carpeta:
-`"PocVpaHpa\poc-ping-loki\monitoring-deployment>"`
-```bash
-~ kubectl apply -f .\deployments.yaml
+~ kubectl apply -f .\promtail.yaml -n tt
 ```
 ---
 ### 2. Configurar Loki como fuente de datos en Grafana
