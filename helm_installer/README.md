@@ -1,6 +1,6 @@
 # 📦 Observabilidad con Tempo, Alloy y Grafana en Kubernetes
 
-Este README documenta el despliegue de [Grafana Tempo](https://grafana.com/oss/tempo/) y [Grafana Alloy](https://grafana.com/docs/alloy/latest/) en un clúster de Kubernetes, junto con su configuración en Grafana para visualizar trazas.
+Este README documenta el despliegue de Grafana Tempo y Grafana Loki en un solo stak, dentro de un clúster de Kubernetes, junto con su configuración en Grafana dashboard para visualizar los logs y las trazas.
 
 # 🚀 Paso a paso
 
